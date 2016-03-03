@@ -23,7 +23,7 @@ for iter = 1:200;
 
 % parfor isrc = 1:nsrc
 load('srcpulse.mat')
-for isrc = 1:nsrc
+parfor isrc = 1:nsrc
 
 % srcx_fwi = srcx(isrc);
 % srcz_fwi = srcz(isrc);
@@ -137,7 +137,7 @@ save('true_model_step.mat','ep','mu','sig','x','z','dx','dz','dt','npml');
 % srcx_fwi = 0;
 %%
 load('srcpulse.mat')
-for isrc = 1:nsrc
+parfor isrc = 1:nsrc
 %     ii = i*4
 % srcx_fwi = srcx_dum(fix(nsrc/2));
 % srcx_fwi = srcx_dum(ii);

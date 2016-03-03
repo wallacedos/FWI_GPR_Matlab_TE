@@ -161,8 +161,8 @@ recz4 = recx4 .* 0 + 4.5;
 % recx = [recx1,recx2,recx3,recx4]';
 % recz = [recz1,recz2,recz3,recz4]';
 
-% srcx = [srcx2];
-% srcz = [srcz2];
+srcx = [recx2]';
+srcz = [recz2]';
 recx = [recx3]';
 recz = [recz3]';
 % srcx = [srcx1];
