@@ -16,8 +16,8 @@ plotopt = [1 recloc(1,3) 1 0.005];
 plotopt_back = [plotopt(1:3), plotopt(4)^2 * length(recloc(:,1));];
 
 %%
-% matlabpool close
-% matlabpool(4)
+%matlabpool close
+matlabpool(4)
 
 for iter = 1:200;
 
