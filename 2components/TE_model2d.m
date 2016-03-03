@@ -1,4 +1,4 @@
-function [xwavefield, zwavefield, xgather, zgather, tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,xprop,zprop,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt, derivative=0)
+function [xwavefield, zwavefield, xgather, zgather, tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,xprop,zprop,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt, derivative)
 % TE_model2d.m
 % 
 % This is a 2-D, TE-mode, FDTD modeling program for crosshole GPR and vertical radar profiling.  
@@ -237,6 +237,8 @@ gather = zeros(fix((numit-1)/outstep(1))+1,nrec,nsrc);
     
     % time stepping loop
     for it=1:numit
+        Ex_before = Ex(1:outstep(3):end,1:outstep(2):end);
+        Ez_before = Ez(1:outstep(3):end,1:outstep(2):end);
         
         % update Hy component...
         
@@ -389,7 +391,7 @@ end
         
         if mod(it-1,outstep(1))==0
             tout((it-1)/outstep(1)+1) = t(it);
-            
+            if derivative == 0
 %             if recloc(1,3)==1
 %                 wavefield((it-1)/outstep(1)+1,:,:) = Ex(1:outstep(3):end,1:outstep(2):end);
 %             elseif recloc(1,3)==2
@@ -404,6 +406,10 @@ end
 %              elseif recloc(1,3)==3
 %                 wavefield((it-1)/outstep(1)+1,:,:) = Hy(1:outstep(3):end,1:outstep(2):end);
 %             end            
+            elseif derivative == 1
+                xwavefield((it-1)/outstep(1)+1,:,:) = Ex(1:outstep(3):end,1:outstep(2):end) - Ex_before;
+                zwavefield((it-1)/outstep(1)+1,:,:) = Ez(1:outstep(3):end,1:outstep(2):end) - Ez_before;
+            end
         end
         
         for r=1:nrec

@@ -1,4 +1,4 @@
-function [ result ] = ApplyImagingCondition( f1, f2, isrc )
+function [ result ] = ApplyImagingCondition( f1, f2, isrc, recloc)
 
 load(f1);
 xwavefield1 = xwavefield;
@@ -10,33 +10,40 @@ load(f2);
 xwavefield2 = flipdim(xwavefield, 1);
 zwavefield2 = flipdim(zwavefield, 1);
 
-result1 = squeeze(sum(xwavefield1(:,1:nx,1:nz) .* xwavefield2(:,1:nx,1:nz), 1));
-result2 = squeeze(sum(zwavefield1(:,1:nx,1:nz) .* zwavefield2(:,1:nx,1:nz), 1));
-result3 = squeeze(sum(xwavefield1(:,1:nx,1:nz) .* zwavefield2(:,1:nx,1:nz), 1));
-result4 = squeeze(sum(zwavefield1(:,1:nx,1:nz) .* xwavefield2(:,1:nx,1:nz), 1));
+corr_xx = squeeze(sum(xwavefield1(:,1:nx,1:nz) .* xwavefield2(:,1:nx,1:nz), 1));
+corr_zz = squeeze(sum(zwavefield1(:,1:nx,1:nz) .* zwavefield2(:,1:nx,1:nz), 1));
+% corr_xz = squeeze(sum(xwavefield1(:,1:nx,1:nz) .* zwavefield2(:,1:nx,1:nz), 1));
+% corr_zx = squeeze(sum(zwavefield1(:,1:nx,1:nz) .* xwavefield2(:,1:nx,1:nz), 1));
 
 
 figure()
-imagesc(x,z,result1');
+imagesc(x,z,corr_xx');
 title('x - x')
 axis image
 saveas(gcf, 'x-x.png')
 figure()
-imagesc(x,z,result2');
+imagesc(x,z,corr_zz');
 title('z - z')
 axis image
 saveas(gcf, 'z-z.png')
-figure()
-imagesc(x,z,result3');
-title('x - z')
-axis image
-saveas(gcf, 'x-z.png')
-figure()
-imagesc(x,z,result4');
-title('z - x')
-axis image
-saveas(gcf, 'z-x.png')
+% figure()
+% imagesc(x,z,corr_xz');
+% title('x - z')
+% axis image
+% saveas(gcf, 'x-z.png')
+% figure()
+% imagesc(x,z,corr_zx');
+% title('z - x')
+% axis image
+% saveas(gcf, 'z-x.png')
 
+save(['result_corr_',num2str(isrc),'.mat'],'corr_xx','corr_zz');
+
+if recloc(1,3) == 1
+    result = corr_xx;
+elseif recloc(1,3) == 2
+    result = corr_zz;
+end
 
 % nx = length(wavefield1(1,:,1));
 % ny = length(wavefield1(1,1,:));

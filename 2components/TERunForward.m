@@ -63,7 +63,7 @@ t=0:dt:T;
 
 % interpolate electrical property grids to proper spatial discretization
 % NOTE:  we MUST use dx/2 here because we're dealing with electrical property matrices
-
+%{
 disp('Interpolating electrical property matrices...');
 disp(' ');
 x2 = min(x):dx/2:max(x);
@@ -71,7 +71,7 @@ z2 = min(z):dx/2:max(z);
 ep2 = gridinterp(ep,x,z,x2,z2,'cubic');
 mu2 = gridinterp(mu,x,z,x2,z2,'cubic');
 sig2 = gridinterp(sig,x,z,x2,z2,'cubic');
-
+%}
 
 % plot electrical property grids to ensure that interpolation was done properly
 %{
@@ -108,15 +108,15 @@ set(gca,'clim',clim); colorbar
 xlabel('x (m)'); ylabel('z (m)');
 title('Interpolated \sigma matrix');
 %}
-
+%{
 % pad electrical property matrices for PML absorbing boundaries
 npml = 10;  % number of PML boundary layers
 [ep3,x3,z3] = padgrid(ep2,x2,z2,2*npml+1);
 [mu3,x3,z3] = padgrid(mu2,x2,z2,2*npml+1);
 [sig3,x3,z3] = padgrid(sig2,x2,z2,2*npml+1);
-
+%}
 % clear unnecessary matrices taking up memory
-clear x2 z2 ep ep2 mu mu2 sig sig2 
+% clear x2 z2 ep ep2 mu mu2 sig sig2 
 
 % create source and receiver location matrices (includes type)
 % (rows are [x location (m), z location (m), type (1=Ex,2=Ez)])
@@ -145,7 +145,7 @@ close all
 
 % run the simulation
 tic;
-[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep3,mu3,sig3,x3,z3,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt);
+[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,x,z,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt,1);
 disp(' ');
 disp(['Total running time = ',num2str(toc/3600),' hours']);
 

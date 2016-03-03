@@ -8,7 +8,7 @@ function TEGenerateData(srcloc,recloc, xsrcpulse, zsrcpulse, T,isrc,outstep,plot
 % load the earth model example from file
 %load crosshole_model
 mu = 0;
-load rtm_model
+load true_model_step
 
 % calculate minimum and maximum relative permittivity and permeability
 % in the model (to be used in finddx.m and finddt.m) 
@@ -60,10 +60,10 @@ disp(' ');
 t=0:dt:T;                          
 %srcpulse = blackharrispulse(100e6,t);    
 % srcpulse = blackharrispulse(freq,t);    
-%{
+
 % interpolate electrical property grids to proper spatial discretization
 % NOTE:  we MUST use dx/2 here because we're dealing with electrical property matrices
-
+%{
 disp('Interpolating electrical property matrices...');
 disp(' ');
 x2 = min(x):dx/2:max(x);
@@ -116,7 +116,7 @@ npml = 10;  % number of PML boundary layers
 [sig3,x3,z3] = padgrid(sig2,x2,z2,2*npml+1);
 %}
 % clear unnecessary matrices taking up memory
-% clear x2 z2 ep ep2 mu mu2 sig sig2 
+% clear  x2  z2 ep ep2 mu mu2 sig sig2 
 
 % create source and receiver location matrices (includes type)
 % (rows are [x location (m), z location (m), type (1=Ex,2=Ez)])
@@ -145,11 +145,11 @@ close all
 
 % run the simulation
 tic;
-[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,x,z,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt,0);
+[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,x,z,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt,1);
 disp(' ');
 disp(['Total running time = ',num2str(toc/3600),' hours']);
 
-save(['Gather02_',num2str(isrc),'.mat'],'xgather','zgather','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
-save(['Wavefield02_',num2str(isrc),'.mat'],'xwavefield','zwavefield','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
+save(['Gather00_step_',num2str(isrc),'.mat'],'xgather','zgather','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
+save(['Wavefield00_step_',num2str(isrc),'.mat'],'xwavefield','zwavefield','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
 
 end

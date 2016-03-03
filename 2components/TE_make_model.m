@@ -2,22 +2,44 @@
 clc; clear; close all;
 
 %% Backgroud
-x = 0:5;
+x = 0:4;
 z = 0:5;
-ep = 9*ones(length(x),length(z));
+domain = [x(end), z(end)];
+ep = 9.0*ones(length(x),length(z));
 mu = ones(size(ep));
 sig = 0.001*ones(size(ep));
 
 
+
+
+
+%%
 dx = 0.02;
 dz = 0.02;
-x2 = min(x):dx:max(x);
-z2 = min(z):dx:max(z);
-ep = gridinterp(ep,x,z,x2,z2,'spline');
-mu = gridinterp(mu,x,z,x2,z2,'spline');
-sig = gridinterp(sig,x,z,x2,z2,'spline');
-x = x2;
-z = z2;
+% x2 = min(x):dx:max(x);
+% z2 = min(z):dx:max(z);
+% ep = gridinterp(ep,x,z,x2,z2,'spline');
+% mu = gridinterp(mu,x,z,x2,z2,'spline');
+% sig = gridinterp(sig,x,z,x2,z2,'spline');
+
+disp('Interpolating electrical property matrices...');
+disp(' ');
+x2 = min(x):dx/2:max(x);
+z2 = min(z):dx/2:max(z);
+ep2 = gridinterp(ep,x,z,x2,z2,'spline');
+mu2 = gridinterp(mu,x,z,x2,z2,'spline');
+sig2 = gridinterp(sig,x,z,x2,z2,'spline');
+% pad electrical property matrices for PML absorbing boundaries
+npml = 10;  % number of PML boundary layers
+[ep3,x3,z3] = padgrid(ep2,x2,z2,2*npml+1);
+[mu3,x3,z3] = padgrid(mu2,x2,z2,2*npml+1);
+[sig3,x3,z3] = padgrid(sig2,x2,z2,2*npml+1);
+
+x = x3;
+z = z3;
+ep = ep3;
+mu = mu3;
+sig = sig3;
 
 dt = 0.1e-9;
 
@@ -26,14 +48,15 @@ subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
 subplot(1,3,2); imagesc(x,z,mu'); axis image; title('\mu'); colorbar;
 subplot(1,3,3); imagesc(x,z,sig'); axis image; title('\sigma'); colorbar;
 saveas(gcf,'model_homo.png')
-save('rtm_model.mat','ep','mu','sig','x','z','dx','dz','dt')
+save('rtm_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
 
 
 %% True Model
-x0 = 4;
-z0 = 4;
-width = 2*dx*1e4;
-len = 10*dx;
+
+x0 = 2;
+z0 = 3;
+width = 2e4*dx;
+len = 20*dx;
 
 k = [0, 1, -1, 1e20];
 % k = 1e20;
@@ -45,7 +68,7 @@ for ii = 1:length(x)
                 dd = abs(z(ik)- k(idum)*x(ii) - (z0-k(idum)*x0))/sqrt(1+k(idum)^2);
                 if dd <= width
                     ep(ii, ik)  = 20;
-                    sig(ii, ik) = 0.01;
+                    sig(ii, ik) = 0.001;
                 end
             end
         end
@@ -57,12 +80,45 @@ subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
 subplot(1,3,2); imagesc(x,z,mu'); axis image; title('\mu'); colorbar;
 subplot(1,3,3); imagesc(x,z,sig'); axis image; title('\sigma'); colorbar;
 saveas(gcf,'model.png')
-save('true_model.mat','ep','mu','sig','x','z','dx','dz','dt')
-
+save('true_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
 
 
 %%
-srcx = [2.5];
+%{
+x0 = 4;
+z0 = 2.5;
+% width = 2*dx*1e4;
+% len = 4*dx;
+% 
+% k = [0, 1, -1, 1e20];
+% % k = 1e20;
+% 
+% for ii = 1:length(x)
+%     for ik = 1:length(z)
+%         if sqrt((x(ii) - x0)^2 + (z(ik) - z0)^2) <= len
+%             for idum=1:length(k)
+%                 dd = abs(z(ik)- k(idum)*x(ii) - (z0-k(idum)*x0))/sqrt(1+k(idum)^2);
+%                 if dd <= width
+%                     ep(ii, ik)  = 20;
+%                     sig(ii, ik) = 0.01;
+%                 end
+%             end
+%         end
+%     end
+% end
+ep(:, :) = 8.99;
+% sig(:, :) = 0.01;
+
+figure();
+subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
+subplot(1,3,2); imagesc(x,z,mu'); axis image; title('\mu'); colorbar;
+subplot(1,3,3); imagesc(x,z,sig'); axis image; title('\sigma'); colorbar;
+saveas(gcf,'model.png')
+save('true_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
+%}
+
+%%
+srcx = [0.5];
 srcz = [2.5];
 % recx = [12];
 % recz = srcz;
@@ -81,8 +137,18 @@ srcz = [2.5];
 % recx1 = 0:0.1:5;
 % recz1 = recx1 .* 0;
 
-recz2 = 0:0.1:z(end);
-recx2 = recz2 .* 0 + 2.5;
+recx1 = 0+0.5:0.1:domain(1)-0.5;
+recz1 = recx1 .* 0 + 0.5;
+
+recz2 = 0+0.5:0.1:domain(2)-0.5;
+recx2 = recz2 .* 0 + 0.5;
+
+recz3 = 0+0.5:0.1:domain(2)-0.5;
+recx3 = recz3 .* 0 + 3.5;
+
+recx4 = 0:0.1:domain(1);
+recz4 = recx4 .* 0 + 4.5;
+
 
 % recx3 = 0:0.1:5;
 % recz3 = recx3 .* 0 + 5;
@@ -92,13 +158,13 @@ recx2 = recz2 .* 0 + 2.5;
 % 
 % srcx = [srcx1,srcx2,srcx3,srcx4];
 % srcz = [srcz1,srcz2,srcz3,srcz4];
-% recx = [recx1,recx2,recx3,recx4];
-% recz = [recz1,recz2,recz3,recz4];
+% recx = [recx1,recx2,recx3,recx4]';
+% recz = [recz1,recz2,recz3,recz4]';
 
 % srcx = [srcx2];
 % srcz = [srcz2];
-recx = [recx2]';
-recz = [recz2]';
+recx = [recx3]';
+recz = [recz3]';
 % srcx = [srcx1];
 % srcz = [srcz1+0.5];
 % recx = [recx3];
@@ -109,6 +175,10 @@ rectype = 2*ones(size(recz));
 srcloc = [srcx  srcz  srctype];
 recloc = [recx  recz  rectype];
 
+
+% save('src_rec.mat','srcx','srcz','recx','recz','x','z')
+save('src_rec.mat','srcloc','recloc','x','z')
+
 subplot(1,3,1)
 hold on
 plot(recloc(:,1), recloc(:,2), 'xr')
@@ -118,8 +188,6 @@ hold on
 plot(recloc(:,1), recloc(:,2), 'xr')
 plot(srcloc(:,1), srcloc(:,2), '*y')
 
-% save('src_rec.mat','srcx','srcz','recx','recz','x','z')
-save('src_rec.mat','srcloc','recloc','x','z')
 
 %%
 Hz = 100e6;

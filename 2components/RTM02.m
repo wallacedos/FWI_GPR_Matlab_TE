@@ -7,13 +7,13 @@ load('src_rec.mat');
 % recx_fwi = recx';
 % recz_fwi = recz';
 nsrc = length(srcloc(:,1));
-outstep = [5, 1, 1]; % 1st for time sampling, 2nd for spatial sampling along x, 3rd for spatial sampling along z;
+outstep = [5, 2, 2]; % 1st for time sampling, 2nd for spatial sampling along x, 3rd for spatial sampling along z;
 
 %       plotopt = plot Ex or Ez wavefield during simulation?  
 %           (vector = [{0=no, 1=yes}, (1=Ex, 2=Ez) {output every # of iterations}, {colorbar threshold}])
 %           (default = [1 2 50 0.05])
-plotopt = [1 recloc(1,3) 1 0.001];
-plotopt_back = [plotopt(1:3), plotopt(4)^2 * 10];
+plotopt = [1 recloc(1,3) 1 0.005];
+plotopt_back = [plotopt(1:3), plotopt(4)^2 * length(recloc(:,1));];
 
 %%
 % matlabpool close
@@ -22,6 +22,7 @@ plotopt_back = [plotopt(1:3), plotopt(4)^2 * 10];
 for iter = 1:200;
 
 % parfor isrc = 1:nsrc
+load('srcpulse.mat')
 for isrc = 1:nsrc
 
 % srcx_fwi = srcx(isrc);
@@ -29,7 +30,6 @@ for isrc = 1:nsrc
 isrcloc = srcloc(isrc,:);
 
 if iter == 1
-    load('srcpulse.mat')
     TEGenerateData(isrcloc,recloc, xsrcpulse, zsrcpulse, T, isrc, outstep, plotopt);
 end
 
@@ -37,34 +37,42 @@ TERunForward(isrcloc,recloc, xsrcpulse, zsrcpulse,  T, isrc, outstep, plotopt);
 
 % jointSource = CrossCorrelationTimeShifts(isrc);
 [xjoint_source, zjoint_source] = GetWaveformDifference(isrc);
-xjoint_source = xjoint_source .*0;
+% xjoint_source = xjoint_source .*0;
 
 TERunBackward(recloc,recloc, xjoint_source, zjoint_source, T, isrc, outstep, plotopt_back);
 
-ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num2str(isrc),'.mat'], isrc);
+ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num2str(isrc),'.mat'], isrc, recloc);
 
 % corr_RTM(['Ey_bak_',num2str(ii),'.mat'],['Ey_for2_',num2str(ii),'.mat'],ii)
 end
-pause;
+
 %%
 
 for i =1:nsrc
     load(['result_corr_',num2str(i),'.mat']);
-    if i == 1
-        Ey_sum = iEy;
-    else
-        Ey_sum = Ey_sum + iEy;
-    end 
+    if recloc(1,3) == 1
+        if i == 1
+            result_sum = corr_xx;
+        else
+            result_sum = result_sum + corr_xx;
+        end 
+    elseif recloc(1,3) == 2
+        if i == 1
+            result_sum = corr_zz;
+        else
+            result_sum = result_sum + corr_zz;
+        end 
+    end
 end
 figure(1)
 clf
-max_caxis = max(max(abs(Ey_sum)));
-imagesc(x,z,Ey_sum')
+max_caxis = max(max(abs(result_sum)))/2;
+imagesc(x,z,result_sum')
 caxis([-max_caxis, max_caxis])
 axis image
 colorbar()
-saveas(gcf,'Sum_all.tif')
-saveas(gcf,['Record_Sum_all_',num2str(iiii),'.tif'])
+% saveas(gcf,'result_sum.tif')
+saveas(gcf,['result_sum_',num2str(iter),'.tif'])
 %%
 %{
 Ey_tape = Ey_sum;
@@ -102,29 +110,34 @@ colorbar();
 % norm = 9 / max(max(abs(Ey_sum))) * 0.001;
 inorm = 0.1;
 % Ey_sum_step = Ey_sum./max(max(abs(Ey_sum))) * inorm;
-load('model_backward.mat')
+load('rtm_model.mat')
 
-Ey_sum_tapper = tapper(Ey_sum, 0.5, 0, x, z, npml);
-Ey_sum_step = Ey_sum_tapper./max(max(abs(Ey_sum_tapper))) * inorm;
+xdum = linspace(x(1), x(end), size(result_sum,1));
+zdum = linspace(x(1), z(end), size(result_sum,2));
+result_sum_interp = gridinterp(result_sum, xdum, zdum, x, z, 'linear');
+
+result_sum_tapper = tapper(result_sum_interp, 0.5, 0.5, 0.5, 0.5, x, z, npml); 
+result_sum_step = result_sum_tapper./max(max(abs(result_sum_tapper))) * inorm;
 
 figure(2)
 clf
-imagesc(x,z,Ey_sum_step')
+imagesc(x,z,result_sum_step')
 axis image
 colorbar()
-saveas(gcf, ['Ey_sum_step',num2str(iiii),'.png'])
+saveas(gcf, ['result_sum_step',num2str(iter),'.png'])
 % ep_sum = -Ey_sum_step;
 
-ep = ep - Ey_sum_step(npml+1:end-npml,npml+1:end-npml);
+ep = ep - result_sum_step;
 
 % ep_tap = itap(ep,11,5);
 % ep = ep_tap;
 
-save('model_forward_step.mat','ep','mu','sig','x','z');
+save('true_model_step.mat','ep','mu','sig','x','z','dx','dz','dt','npml');
 % save(['Record_model_forward_step',num2str(iiii),'.mat'],'ep_sum','ep','mu','sig','x','z');
 % srcx_fwi = 0;
 %%
-parfor ii = 1:nsrc
+load('srcpulse.mat')
+for isrc = 1:nsrc
 %     ii = i*4
 % srcx_fwi = srcx_dum(fix(nsrc/2));
 % srcx_fwi = srcx_dum(ii);
@@ -135,15 +148,17 @@ parfor ii = 1:nsrc
 % ii = fix(nsrc/2);
 % srcx_fwi = srcx_dum(ii);
 % srcz_fwi = 9*ones(size(srcx_fwi));
-srcx_fwi = srcx(ii);
-srcz_fwi = srcz(ii);
-TM_run_forward_step(srcx_fwi,srcz_fwi,recx_fwi,recz_fwi,T,ii)
+% srcx_fwi = srcx(ii);
+% srcz_fwi = srcz(ii);
+isrcloc = srcloc(isrc,:);
+TEGenerateData_step(isrcloc,recloc, xsrcpulse, zsrcpulse,  T, isrc, outstep, plotopt);
+% TM_run_forward_step(srcx_fwi,srcz_fwi,recx_fwi,recz_fwi,T,ii)
 end
 
 %%
 % for ii = 1:nsrc
 
-istep = get_step_crosstime(nsrc, inorm, iiii);
+[xistep, zistep] = get_step(nsrc, inorm, iter);
 
 
 
@@ -161,12 +176,12 @@ istep = get_step_crosstime(nsrc, inorm, iiii);
 
 
 % Ey_sum2 = Ey_sum./max(max(abs(Ey_sum))) * istep;
-Ey_sum2 = Ey_sum_tapper./max(max(abs(Ey_sum_tapper))) * istep;
+result_sum2 = result_sum_tapper./max(max(abs(result_sum_tapper))) * zistep;
 % Ey_sum2 = Ey_sum_step / inorm * istep;
 
-load('model_backward.mat')
+load('rtm_model.mat')
 
-ep = ep - Ey_sum2(npml+1:end-npml,npml+1:end-npml);
+ep = ep - result_sum2;
 
 % ep(ep<5) = 5;
 % ep_tap = itap(ep,35,8);
@@ -176,26 +191,32 @@ clf
 imagesc(x, z, ep')
 axis image
 colorbar();
-saveas(gcf,['Record_model_backward_',num2str(iiii),'.tif'])
-save('model_backward.mat','ep','mu','sig','x','z');
-save(['Record_model_backward_',num2str(iiii),'.mat'],'ep','mu','sig','x','z','istep');
+saveas(gcf,['Record_rtm_model_',num2str(iter),'.tif'])
+save('rtm_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml');
+save(['Record_rtm_model_',num2str(iter),'.mat'],'ep','mu','sig','x','z','xistep','zistep');
 
-load('model_backward.mat')
+load('rtm_model.mat')
 figure(4)
 clf
 plot(z,ep(fix(length(ep(:,1))/2),:))
 hold on
-load('model_forward.mat')
+load('true_model.mat')
 plot(z,ep(fix(length(ep(:,1))/2),:),'r')
-saveas(gcf,['slice_x_',num2str(iiii),'.tif'])
+xlim([z(1), z(end)])
+xlabel('z (m)')
+ylabel('\epsilon')
+saveas(gcf,['slice_x_',num2str(iter),'.tif'])
 
-load('model_backward.mat')
+load('rtm_model.mat')
 figure(5)
 clf
 plot(x,ep(:, fix(length(ep(:,1))/2)))
 hold on
-load('model_forward.mat')
+load('true_model.mat')
 plot(x,ep(:, fix(length(ep(:,1))/2)),'r')
-saveas(gcf,['slice_z_',num2str(iiii),'.tif'])
+xlim([x(1), x(end)])
+xlabel('x (m)')
+ylabel('\epsilon')
+saveas(gcf,['slice_z_',num2str(iter),'.tif'])
 end
 %}
