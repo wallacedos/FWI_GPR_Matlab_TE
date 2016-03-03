@@ -1,4 +1,4 @@
-function TE_run_forward(srcx,srcz,recx,recz,freq,T,isrc,outstep,flag)
+function TEGenerateData(srcloc,recloc, xsrcpulse, zsrcpulse, T,isrc,outstep,plotopt)
 % Example for running TE_model2d.m
 % (a 2-D, FDTD, crosshole radar and VRP modeling code in MATLAB)
 %
@@ -7,6 +7,7 @@ function TE_run_forward(srcx,srcz,recx,recz,freq,T,isrc,outstep,flag)
 
 % load the earth model example from file
 %load crosshole_model
+mu = 0;
 load rtm_model
 
 % calculate minimum and maximum relative permittivity and permeability
@@ -45,7 +46,7 @@ dtmax = finddt(epmin,mumin,dx,dz);
 if dt > dtmax
 	disp(['Maximum possible time step with this discretization = ',num2str(dtmax/1e-9),' ns']);
 	disp(' ');
-	break
+	pause
 end
 
 % set proper dt here (s) using the above results as a guide
@@ -58,11 +59,11 @@ disp(' ');
 %t=0:dt:250e-9;                          
 t=0:dt:T;                          
 %srcpulse = blackharrispulse(100e6,t);    
-srcpulse = blackharrispulse(freq,t);    
+% srcpulse = blackharrispulse(freq,t);    
 
 % interpolate electrical property grids to proper spatial discretization
 % NOTE:  we MUST use dx/2 here because we're dealing with electrical property matrices
-%{
+
 disp('Interpolating electrical property matrices...');
 disp(' ');
 x2 = min(x):dx/2:max(x);
@@ -70,7 +71,7 @@ z2 = min(z):dx/2:max(z);
 ep2 = gridinterp(ep,x,z,x2,z2,'cubic');
 mu2 = gridinterp(mu,x,z,x2,z2,'cubic');
 sig2 = gridinterp(sig,x,z,x2,z2,'cubic');
-%}
+
 
 % plot electrical property grids to ensure that interpolation was done properly
 %{
@@ -115,7 +116,7 @@ npml = 10;  % number of PML boundary layers
 [sig3,x3,z3] = padgrid(sig2,x2,z2,2*npml+1);
 
 % clear unnecessary matrices taking up memory
-clear x x2 z z2 ep ep2 mu mu2 sig sig2 
+clear x2 z2 ep ep2 mu mu2 sig sig2 
 
 % create source and receiver location matrices (includes type)
 % (rows are [x location (m), z location (m), type (1=Ex,2=Ez)])
@@ -125,14 +126,14 @@ srcx = 0.5*ones(size(srcz));
 recx = 5.5*ones(size(srcx));
 recz = srcz;
 %}
-srctype = 2*ones(size(srcz));
-rectype = 2*ones(size(srcz));
-srcloc = [srcx srcz srctype];
-recloc = [recx recz rectype];
+% srctype = 2*ones(size(srcz));
+% rectype = 2*ones(size(srcz));
+% srcloc = [srcx srcz srctype];
+% recloc = [recx recz rectype];
 
 % set some output and plotting parameters
 %outstep = 1;
-plotopt = [1 2 50 0.001];
+% plotopt = [1 2 50 0.001];
 
 % pause
 %{
@@ -144,11 +145,11 @@ close all
 
 % run the simulation
 tic;
-[wavefield,gather,tout,srcx,srcz,recx,recz] = TE_model2d(ep3,mu3,sig3,x3,z3,srcloc,recloc,srcpulse,t,npml,outstep,plotopt,flag);
+[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep3,mu3,sig3,x3,z3,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt);
 disp(' ');
 disp(['Total running time = ',num2str(toc/3600),' hours']);
 
-save(['Gather01_',num2str(isrc),'.mat'],'gather','tout','srcx','srcz','recx','recz','dt','dx','dz','-v7.3')
-save(['Wavefield01_',num2str(isrc),'.mat'],'wavefield','tout','srcx','srcz','recx','recz','dt','dx','dz','-v7.3')
+save(['Gather02_',num2str(isrc),'.mat'],'xgather','zgather','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
+save(['Wavefield02_',num2str(isrc),'.mat'],'xwavefield','zwavefield','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
 
 end

@@ -30,15 +30,16 @@ isrcloc = srcloc(isrc,:);
 
 if iter == 1
     load('srcpulse.mat')
-    TEGenerateData(isrcloc,recloc, srcpulse, T, isrc, outstep, plotopt);
+    TEGenerateData(isrcloc,recloc, xsrcpulse, zsrcpulse, T, isrc, outstep, plotopt);
 end
 
-TERunForward(isrcloc,recloc, srcpulse, T, isrc, outstep, plotopt);
+TERunForward(isrcloc,recloc, xsrcpulse, zsrcpulse,  T, isrc, outstep, plotopt);
 
 % jointSource = CrossCorrelationTimeShifts(isrc);
-joint_source = GetWaveformDifference(isrc) ;
+[xjoint_source, zjoint_source] = GetWaveformDifference(isrc);
+xjoint_source = xjoint_source .*0;
 
-TERunBackward(recloc,recloc, joint_source, T, isrc, outstep, plotopt_back);
+TERunBackward(recloc,recloc, xjoint_source, zjoint_source, T, isrc, outstep, plotopt_back);
 
 ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num2str(isrc),'.mat'], isrc);
 

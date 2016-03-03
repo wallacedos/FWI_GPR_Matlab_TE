@@ -1,4 +1,4 @@
-function [wavefield, gather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,xprop,zprop,srcloc,recloc,srcpulse,t,npml,outstep,plotopt)
+function [gather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,xprop,zprop,srcloc,recloc,srcpulse,t,npml,outstep,plotopt)
 % TE_model2d.m
 % 
 % This is a 2-D, TE-mode, FDTD modeling program for crosshole GPR and vertical radar profiling.  
@@ -55,7 +55,7 @@ if max(srcloc(:,1))>max(xprop) | min(srcloc(:,1))<min(xprop) | max(srcloc(:,2))>
         | min(srcloc(:,2))<min(zprop); disp('source vector out of range of modeling grid'); return; end 
 if max(recloc(:,1))>max(xprop) | min(recloc(:,1))<min(xprop) | max(recloc(:,2))>max(zprop)...
         | min(recloc(:,2))<min(zprop); disp('receiver vector out of range of modeling grid'); return; end
-% if length(srcpulse)~=length(t); disp('srcpulse and t vectors must have same # of points'); return; end
+if length(srcpulse)~=length(t); disp('srcpulse and t vectors must have same # of points'); return; end
 if npml>=length(xprop)/2 | npml>=length(zprop)/2; disp('too many PML boundary layers for grid'); return; end
 if length(plotopt)~=4; disp('plotopt must be a 4 component vector'); return; end
 
@@ -100,11 +100,6 @@ for s=1:nsrc;
         [temp,srcj(s)] = min(abs(zEz-srcloc(s,2))); % source z index in Ez field matrix
         srcx(s) = xEz(srci(s));                     % true source x location
         srcz(s) = zEz(srcj(s));                     % true source z location
-    elseif srcloc(s,3)==3                           % in the case of an Ez source...
-        [temp,srci(s)] = min(abs(xHy-srcloc(s,1))); % source x index in Ez field matrix
-        [temp,srcj(s)] = min(abs(zHy-srcloc(s,2))); % source z index in Ez field matrix
-        srcx(s) = xHy(srci(s));                     % true source x location
-        srcz(s) = zHy(srcj(s));                     % true source z location
     end    
 end
 for r=1:nrec;                                   
@@ -118,11 +113,6 @@ for r=1:nrec;
         [temp,recj(r)] = min(abs(zEz-recloc(r,2))); % receiver z index in Ez field matrix
         recx(r) = xEz(reci(r));                     % true receiver x location
         recz(r) = zEz(recj(r));                     % true receiver z location
-    elseif recloc(r,3)==3                           % in the case of an Ez receiver
-        [temp,reci(r)] = min(abs(xHy-recloc(r,1))); % receiver x index in Ez field matrix
-        [temp,recj(r)] = min(abs(zHy-recloc(r,2))); % receiver z index in Ez field matrix
-        recx(r) = xHy(reci(r));                     % true receiver x location
-        recz(r) = zHy(recj(r));                     % true receiver z location
     end    
 end
 
@@ -204,10 +194,11 @@ clear sigxmax sigzmax xdel zdel Kx Kz sigx sigz
 
 disp('Beginning FDTD simulation...')
 
-
+% initialize gather matrix where data will be stored
+gather = zeros(fix((numit-1)/outstep)+1,nrec,nsrc);
 
 % loop over number of sources
-% for s=1:nsrc
+for s=1:nsrc
 
     % zero all field matrices
     Hy = zeros(nx-1,nz-1);          % Hy component of magnetic field
@@ -221,14 +212,6 @@ disp('Beginning FDTD simulation...')
     PHyz = zeros(nx-1,nz-1);        % psi_Hyz (for PML)
     PEx = zeros(nx-1,nz);           % psi_Ex (for PML)
     PEz = zeros(nx,nz-1);           % psi_Ez (for PML)
-    
-% initialize gather matrix where data will be stored
-gather = zeros(fix((numit-1)/outstep(1))+1,nrec,nsrc);
-if recloc(1,3)==1
-    wavefield = zeros(fix((numit-1)/outstep(1))+1, fix((length(Ex(:,1))-1)/outstep(3))+1, fix((length(Ex(1,:))-1)/outstep(2))+1);
-elseif recloc(1,3)==2
-    wavefield = zeros(fix((numit-1)/outstep(1))+1, fix((length(Ez(:,1))-1)/outstep(3))+1, fix((length(Ez(1,:))-1)/outstep(2))+1);
-end
     
     % time stepping loop
     for it=1:numit
@@ -308,19 +291,12 @@ end
 
         % add source pulse to Ex or Ez at source location
         % (emulates infinitesimal Ex or Ez directed line source with current = srcpulse)
-if it <= length(srcpulse(1,:))
-for s=1:nsrc        
         i = srci(s); j = srcj(s);
         if srcloc(s,3)==1
-            Ex(i,j) = Ex(i,j) + srcpulse(s,it);
-%             Hy(i,j) = Hy(i,j) + srcpulse(s,it);
+            Ex(i,j) = Ex(i,j) + srcpulse(it);
         elseif srcloc(s,3)==2
-            Ez(i,j) = Ez(i,j) + srcpulse(s,it);
-        elseif srcloc(s,3)==3
-            Hy(i,j) = Hy(i,j) + srcpulse(s,it);
+            Ez(i,j) = Ez(i,j) + srcpulse(it);
         end
-end
-end
     
         
         % plot the Ex or Ez wavefield if necessary
@@ -334,65 +310,29 @@ end
                             ':  Ex wavefield at t = ',num2str(t(it)*1e9),' ns']);
                     xlabel('Position (m)');  ylabel('Depth (m)');
                     caxis([-plotopt(4) plotopt(4)]);
-%                     colorbar();
-%                     pause(0.01);
-%                     pause;
+                    pause(0.01);
                 elseif plotopt(2)==2
                     figure(1); imagesc(xEz,zEz,Ez'); axis image
                     title(['Source ',num2str(s),'/',num2str(nsrc),', Iteration ',num2str(it),'/',num2str(numit),...
                             ':  Ez wavefield at t = ',num2str(t(it)*1e9),' ns']);
                     xlabel('Position (m)');  ylabel('Depth (m)');
                     caxis([-plotopt(4) plotopt(4)]);
-%                     pause(0.01);
-%                     colorbar();
-%                     pause;
-                elseif plotopt(2)==3
-                    figure(1); imagesc(xHy,zHy,Hy'); axis image
-                    title(['Source ',num2str(s),'/',num2str(nsrc),', Iteration ',num2str(it),'/',num2str(numit),...
-                            ':  Hy wavefield at t = ',num2str(t(it)*1e9),' ns']);
-                    xlabel('Position (m)');  ylabel('Depth (m)');
-                    caxis([-plotopt(4) plotopt(4)]);
-%                     pause(0.01);
-%                     colorbar();
-%                     pause;
+                    pause(0.01);
                 end
             end
         end
     
         % record the results in gather matrix if necessary
-%         if mod(it-1,outstep)==0
-%             tout((it-1)/outstep+1) = t(it);
-%             for r=1:nrec
-%                 if recloc(r,3)==1
-%                     gather((it-1)/outstep+1,r,s) = Ex(reci(r),recj(r));
-%                 elseif recloc(r,3)==2
-%                     gather((it-1)/outstep+1,r,s) = Ez(reci(r),recj(r));
-%                 end
-%             end
-%         end
-        
-        if mod(it-1,outstep(1))==0
-            tout((it-1)/outstep(1)+1) = t(it);
-            
-            if recloc(1,3)==1
-                wavefield((it-1)/outstep(1)+1,:,:) = Ex(1:outstep(3):end,1:outstep(2):end);
-            elseif recloc(1,3)==2
-                wavefield((it-1)/outstep(1)+1,:,:) = Ez(1:outstep(3):end,1:outstep(2):end);
-             elseif recloc(1,3)==3
-                wavefield((it-1)/outstep(1)+1,:,:) = Hy(1:outstep(3):end,1:outstep(2):end);
-            end
-            
-        end
-        
-        for r=1:nrec
-            if recloc(r,3)==1
-                gather(it,r,s) = Ex(reci(r),recj(r));
-            elseif recloc(r,3)==2
-                gather(it,r,s) = Ez(reci(r),recj(r));
-            elseif recloc(r,3)==3
-                gather(it,r,s) = Hy(reci(r),recj(r));
+        if mod(it-1,outstep)==0
+            tout((it-1)/outstep+1) = t(it);
+            for r=1:nrec
+                if recloc(r,3)==1
+                    gather((it-1)/outstep+1,r,s) = Ex(reci(r),recj(r));
+                elseif recloc(r,3)==2
+                    gather((it-1)/outstep+1,r,s) = Ez(reci(r),recj(r));
+                end
             end
         end
         
     end
-% end
+end

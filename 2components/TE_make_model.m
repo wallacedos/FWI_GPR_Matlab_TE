@@ -31,9 +31,10 @@ save('rtm_model.mat','ep','mu','sig','x','z','dx','dz','dt')
 
 %% True Model
 x0 = 4;
-z0 = 2.5;
-width = 2*dx;
-len = 20*width;
+z0 = 4;
+width = 2*dx*1e4;
+len = 10*dx;
+
 k = [0, 1, -1, 1e20];
 % k = 1e20;
 
@@ -43,7 +44,7 @@ for ii = 1:length(x)
             for idum=1:length(k)
                 dd = abs(z(ik)- k(idum)*x(ii) - (z0-k(idum)*x0))/sqrt(1+k(idum)^2);
                 if dd <= width
-                    ep(ii, ik)  = 9;
+                    ep(ii, ik)  = 20;
                     sig(ii, ik) = 0.01;
                 end
             end
@@ -127,13 +128,18 @@ nsrc = length(srcloc(:,1));
 t = 0:dt:T;
 % signal=blackharrispulse(Hz,t);
 signal = ricker(Hz, t);
-srcpulse =repmat(signal,nsrc,1);
+xsrcpulse = repmat(signal,nsrc,1) .* 0;
+zsrcpulse = repmat(signal,nsrc,1);
 figure()
-subplot(2,1,1)
+subplot(3,1,1)
 plot(t, signal)
-subplot(2,1,2)
-imagesc(t,1:nsrc, srcpulse)
-save('srcpulse.mat','srcpulse','t','srcloc')
+subplot(3,1,2)
+imagesc(t,1:nsrc, xsrcpulse)
+title('xsrcpulse')
+subplot(3,1,3)
+imagesc(t,1:nsrc, zsrcpulse)
+title('zsrcpulse')
+save('srcpulse.mat','xsrcpulse','zsrcpulse','t','srcloc')
 
 %% Test dx, dz, dt
 epmin = min(min(ep));
@@ -142,7 +148,7 @@ mumin = min(min(mu));
 mumax = max(max(mu));
 dtmax = finddt(epmin,mumin,dx,dz);
 
-[dxmax,wlmin,fmax] = finddx(epmax,mumax,srcpulse,t,0.02);
+[dxmax,wlmin,fmax] = finddx(epmax,mumax,signal,t,0.02);
 disp(['Maximum frequency contained in source pulse = ',num2str(fmax/1e6),' MHz']);
 disp(['Minimum wavelength in simulation grid = ',num2str(wlmin),' m']);
 disp(['Maximum possible electric/magnetic field discretization (dx,dz) = ',num2str(dxmax),' m']);
