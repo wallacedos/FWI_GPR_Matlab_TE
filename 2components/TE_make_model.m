@@ -137,6 +137,9 @@ srcz = [2.5];
 % recx1 = 0:0.1:5;
 % recz1 = recx1 .* 0;
 
+srcz2 = 0+0.5:0.5:domain(2)-0.5;
+srcx2 = srcz2 .* 0 + 0.5;
+
 recx1 = 0+0.5:0.1:domain(1)-0.5;
 recz1 = recx1 .* 0 + 0.5;
 
@@ -161,8 +164,8 @@ recz4 = recx4 .* 0 + 4.5;
 % recx = [recx1,recx2,recx3,recx4]';
 % recz = [recz1,recz2,recz3,recz4]';
 
-srcx = [recx2]';
-srcz = [recz2]';
+srcx = [srcx2]';
+srcz = [srcz2]';
 recx = [recx3]';
 recz = [recz3]';
 % srcx = [srcx1];
