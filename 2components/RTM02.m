@@ -116,7 +116,7 @@ xdum = linspace(x(1), x(end), size(result_sum,1));
 zdum = linspace(x(1), z(end), size(result_sum,2));
 result_sum_interp = gridinterp(result_sum, xdum, zdum, x, z, 'linear');
 
-result_sum_tapper = tapper(result_sum_interp, 0.5, 0.5, 0.5, 0.5, x, z, npml); 
+result_sum_tapper = tapper(result_sum_interp, 1, 0, 0.7, 0.7, x, z, npml); 
 result_sum_step = result_sum_tapper./max(max(abs(result_sum_tapper))) * inorm;
 
 figure(2)
