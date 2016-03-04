@@ -36,13 +36,13 @@ TERunForward(isrcloc,recloc, xsrcpulse, zsrcpulse,  T, isrc, outstep, plotopt);
 [xjoint_source, zjoint_source] = GetWaveformDifference(isrc);
 % xjoint_source = xjoint_source .*0;
 
-TERunBackward(recloc,recloc, xjoint_source, zjoint_source, T, isrc, outstep, plotopt_back);
+TERunBackward_sig(recloc,recloc, xjoint_source, zjoint_source, T, isrc, outstep, plotopt_back);
 
 ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num2str(isrc),'.mat'], isrc, recloc);
 
 end
 
-%{
+
 %%
 for i =1:nsrc
     load(['result_corr_',num2str(i),'.mat']);
@@ -69,6 +69,7 @@ axis image
 colorbar()
 saveas(gcf,['result_sum_',num2str(iter),'.tif'])
 
+%{
 %%
 
 inorm = 0.1;
