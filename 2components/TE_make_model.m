@@ -43,10 +43,21 @@ sig = sig3;
 
 dt = 0.1e-9;
 
-sig(x>1.5, z>2.5) = 0.01;
+ep(x>1.5, :) = 18;
+ep(x>3, :) = 27;
+sig(x>1.7&x<2.3, z>1.5&z<3.5) = 0.01;
 
-myfilter = fspecial('gaussian',[100 100], 50);
+myfilter = fspecial('gaussian',[50 50], 10);
 sig = imfilter(sig, myfilter, 'replicate');
+
+figure();
+subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
+subplot(1,3,2); imagesc(x,z,mu'); axis image; title('\mu'); colorbar;
+subplot(1,3,3); imagesc(x,z,sig'); axis image; title('\sigma'); colorbar;
+saveas(gcf,'model.png')
+save('true_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
+
+ep = imfilter(ep, myfilter, 'replicate');
 
 figure();
 subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
@@ -55,7 +66,7 @@ subplot(1,3,3); imagesc(x,z,sig'); axis image; title('\sigma'); colorbar;
 saveas(gcf,'model_homo.png')
 save('rtm_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
 
-
+%{
 %% True Model
 
 
@@ -114,7 +125,7 @@ subplot(1,3,3); imagesc(x,z,sig'); axis image; title('\sigma'); colorbar;
 saveas(gcf,'model.png')
 save('true_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
 
-
+%}
 %%
 %{
 x0 = 4;
