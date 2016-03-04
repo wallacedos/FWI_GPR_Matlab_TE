@@ -1,4 +1,4 @@
-function [xwavefield, zwavefield, xgather, zgather, tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,xprop,zprop,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt, derivative)
+function [xwavefield, zwavefield, xgather, zgather, tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,xprop,zprop,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt, isrc, derivative)
 % TE_model2d.m
 % 
 % This is a 2-D, TE-mode, FDTD modeling program for crosshole GPR and vertical radar profiling.  
@@ -344,11 +344,11 @@ end
         % plot the Ex or Ez wavefield if necessary
         if plotopt(1)==1;   
             if mod(it-1,plotopt(3))==0
-                disp(['Source ',num2str(s),'/',num2str(nsrc),', Iteration ',num2str(it),'/',num2str(numit),...
+                disp(['Source ',num2str(isrc),', Iteration ',num2str(it),'/',num2str(numit),...
                         ':  t = ',num2str(t(it)*1e9),' ns'])
                 if plotopt(2)==1
                     figure(1); imagesc(xEx,zEx,Ex'); axis image
-                    title(['Source ',num2str(s),'/',num2str(nsrc),', Iteration ',num2str(it),'/',num2str(numit),...
+                    title(['Source ',num2str(isrc),', Iteration ',num2str(it),'/',num2str(numit),...
                             ':  Ex wavefield at t = ',num2str(t(it)*1e9),' ns']);
                     xlabel('Position (m)');  ylabel('Depth (m)');
                     caxis([-plotopt(4) plotopt(4)]);
@@ -357,7 +357,7 @@ end
 %                     pause;
                 elseif plotopt(2)==2
                     figure(1); imagesc(xEz,zEz,Ez'); axis image
-                    title(['Source ',num2str(s),'/',num2str(nsrc),', Iteration ',num2str(it),'/',num2str(numit),...
+                    title(['Source ',num2str(isrc),', Iteration ',num2str(it),'/',num2str(numit),...
                             ':  Ez wavefield at t = ',num2str(t(it)*1e9),' ns']);
                     xlabel('Position (m)');  ylabel('Depth (m)');
                     caxis([-plotopt(4) plotopt(4)]);
@@ -366,7 +366,7 @@ end
 %                     pause;
                 elseif plotopt(2)==3
                     figure(1); imagesc(xHy,zHy,Hy'); axis image
-                    title(['Source ',num2str(s),'/',num2str(nsrc),', Iteration ',num2str(it),'/',num2str(numit),...
+                    title(['Source ',num2str(isrc),', Iteration ',num2str(it),'/',num2str(numit),...
                             ':  Hy wavefield at t = ',num2str(t(it)*1e9),' ns']);
                     xlabel('Position (m)');  ylabel('Depth (m)');
                     caxis([-plotopt(4) plotopt(4)]);

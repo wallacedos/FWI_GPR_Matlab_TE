@@ -12,19 +12,21 @@ outstep = [5, 2, 2]; % 1st for time sampling, 2nd for spatial sampling along x, 
 %       plotopt = plot Ex or Ez wavefield during simulation?  
 %           (vector = [{0=no, 1=yes}, (1=Ex, 2=Ez) {output every # of iterations}, {colorbar threshold}])
 %           (default = [1 2 50 0.05])
-plotopt = [1 recloc(1,3) 1 0.005];
+plotopt = [1 recloc(1,3) 1 0.00005];
 plotopt_back = [plotopt(1:3), plotopt(4)^2 * length(recloc(:,1));];
 
 %%
-%matlabpool close
-matlabpool(4)
+if matlabpool('size')<=0
+    matlabpool open 4;
+end
 
 for iter = 1:200;
 
 % parfor isrc = 1:nsrc
 load('srcpulse.mat')
 parfor isrc = 1:nsrc
-
+% for isrc = 7:nsrc
+    
 % srcx_fwi = srcx(isrc);
 % srcz_fwi = srcz(isrc);
 isrcloc = srcloc(isrc,:);
@@ -46,6 +48,7 @@ ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num
 % corr_RTM(['Ey_bak_',num2str(ii),'.mat'],['Ey_for2_',num2str(ii),'.mat'],ii)
 end
 
+pause
 %%
 
 for i =1:nsrc

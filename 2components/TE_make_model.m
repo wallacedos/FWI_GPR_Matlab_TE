@@ -43,6 +43,8 @@ sig = sig3;
 
 dt = 0.1e-9;
 
+sig(:, z>2.5) = 0.01;
+
 figure();
 subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
 subplot(1,3,2); imagesc(x,z,mu'); axis image; title('\mu'); colorbar;
@@ -53,8 +55,9 @@ save('rtm_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
 
 %% True Model
 
-x0 = 2;
-z0 = 3;
+
+x0 = 3;
+z0 = 1.5;
 width = 2e4*dx;
 len = 20*dx;
 
@@ -68,12 +71,38 @@ for ii = 1:length(x)
                 dd = abs(z(ik)- k(idum)*x(ii) - (z0-k(idum)*x0))/sqrt(1+k(idum)^2);
                 if dd <= width
                     ep(ii, ik)  = 20;
-                    sig(ii, ik) = 0.001;
+%                     sig(ii, ik) = 0.001;
                 end
             end
         end
     end
 end
+
+x0 = 3;
+z0 = 3.5;
+width = 2e4*dx;
+len = 20*dx;
+
+k = [0, 1, -1, 1e20];
+% k = 1e20;
+
+for ii = 1:length(x)
+    for ik = 1:length(z)
+        if sqrt((x(ii) - x0)^2 + (z(ik) - z0)^2) <= len
+            for idum=1:length(k)
+                dd = abs(z(ik)- k(idum)*x(ii) - (z0-k(idum)*x0))/sqrt(1+k(idum)^2);
+                if dd <= width
+                    ep(ii, ik)  = 20;
+%                     sig(ii, ik) = 0.001;
+                end
+            end
+        end
+    end
+end
+
+
+
+
 
 figure();
 subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
@@ -166,8 +195,8 @@ recz4 = recx4 .* 0 + 4.5;
 
 srcx = [srcx2]';
 srcz = [srcz2]';
-recx = [recx3]';
-recz = [recz3]';
+recx = [recx2]';
+recz = [recz2]';
 % srcx = [srcx1];
 % srcz = [srcz1+0.5];
 % recx = [recx3];
