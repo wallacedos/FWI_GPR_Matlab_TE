@@ -36,7 +36,7 @@ TERunForward(isrcloc,recloc, xsrcpulse, zsrcpulse,  T, isrc, outstep, plotopt);
 [xjoint_source, zjoint_source] = GetWaveformDifference(isrc);
 % xjoint_source = xjoint_source .*0;
 
-TERunBackward_sig(recloc,recloc, xjoint_source, zjoint_source, T, isrc, outstep, plotopt_back);
+TERunBackward(recloc,recloc, xjoint_source, zjoint_source, T, isrc, outstep, plotopt_back);
 
 ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num2str(isrc),'.mat'], isrc, recloc);
 

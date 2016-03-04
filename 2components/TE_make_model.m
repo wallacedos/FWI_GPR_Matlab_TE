@@ -43,7 +43,10 @@ sig = sig3;
 
 dt = 0.1e-9;
 
-sig(:, z>2.5) = 0.01;
+sig(x>1.5, z>2.5) = 0.01;
+
+myfilter = fspecial('gaussian',[100 100], 50);
+sig = imfilter(sig, myfilter, 'replicate');
 
 figure();
 subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
