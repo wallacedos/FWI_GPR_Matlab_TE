@@ -20,12 +20,12 @@ figure()
 imagesc(x,z,corr_xx');
 title('x - x')
 axis image
-saveas(gcf, 'x-x.png')
+saveas(gcf, 'x-x_',num2str(isrc),'.png')
 figure()
 imagesc(x,z,corr_zz');
 title('z - z')
 axis image
-saveas(gcf, 'z-z.png')
+saveas(gcf, 'z-z_',num2str(isrc),'.png')
 % figure()
 % imagesc(x,z,corr_xz');
 % title('x - z')
