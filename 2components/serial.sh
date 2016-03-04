@@ -12,7 +12,7 @@
 #$ -V
 
 ######### set job's name
-#$ -N JOB_NAME
+#$ -N RTM_GPR
 
 WORKPATH=`pwd`
 echo "Current PATH = ${WORKPATH}"
