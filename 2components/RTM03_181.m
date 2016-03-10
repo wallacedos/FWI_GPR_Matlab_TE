@@ -2,43 +2,51 @@ clear; clc; close all
 % figure(1);figure(2);figure(3);figure(4);figure(5);
 %%
 
-T = 150e-9;
+T = 110e-9;
+T_RTM = T/2 +25e-9;
 load('src_rec.mat');
 nsrc = length(srcloc(:,1));
-outstep = [5, 2, 2]; % 1st for time sampling, 2nd for spatial sampling along x, 3rd for spatial sampling along z;
+outstep = [1, 5, 2, 2, 1]; % 1st for if record output wavefield, 1st for time sampling, 2nd for spatial sampling along x, 3rd for spatial sampling along z;
+% outstep_RTM = [0, 5, 2, 2];
 
 %       plotopt = plot Ex or Ez wavefield during simulation?  
 %           (vector = [{0=no, 1=yes}, (1=Ex, 2=Ez) {output every # of iterations}, {colorbar threshold}])
 %           (default = [1 2 50 0.05])
-plotopt = [1 recloc(1,3) 1 0.00005];
+plotopt = [1 recloc(1,3) 10 0.00005];
 plotopt_back = [plotopt(1:3), plotopt(4)^2 * length(recloc(:,1));];
 
 %%
-if matlabpool('size')<=0
-    matlabpool open 8;
-end
+% if matlabpool('size')<=0
+%     matlabpool open 8;
+% end
 
 for iter = 1:1;
 
 load('srcpulse.mat')
-parfor isrc = 1:nsrc
-% for isrc = 7:nsrc
+% parfor isrc = 1:nsrc
+for isrc = 1:nsrc
 
 isrcloc = srcloc(isrc,:);
 
+outstep = [0, 5, 2, 2, 1];
 if iter == 1
     TEGenerateData(isrcloc,recloc, xsrcpulse, zsrcpulse, T, isrc, outstep, plotopt);
 end
-
 TERunForward(isrcloc,recloc, xsrcpulse, zsrcpulse,  T, isrc, outstep, plotopt);
+
+% TERunForward(isrcloc,recloc, xsrcpulse, zsrcpulse,  T_RTM, isrc, outstep, plotopt);
 
 % jointSource = CrossCorrelationTimeShifts(isrc);
 [xjoint_source, zjoint_source] = GetWaveformDifference(isrc);
 % xjoint_source = xjoint_source .*0;
 
-TERunBackward(recloc,recloc, xjoint_source, zjoint_source, T, isrc, outstep, plotopt_back);
+outstep = [1, 5, 2, 2, 1];
+TERunForward_sig(isrcloc,recloc, xsrcpulse, zsrcpulse,  T_RTM, isrc, outstep, plotopt);
+outstep = [1, 5, 2, 2, 0];
+TERunBackward_sig(recloc,recloc, xjoint_source, zjoint_source, T_RTM, isrc, outstep, plotopt_back);
 
-ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num2str(isrc),'.mat'], isrc, recloc);
+numit = floor(T/(t(2)-t(1)));
+ApplyImagingCondition(['Wavefield01_',num2str(isrc),'.mat'], ['Wavefield02_',num2str(isrc),'.mat'], isrc, recloc, fix((numit-1)/outstep(2))+1);
 
 end
 
@@ -60,13 +68,13 @@ for i =1:nsrc
         end 
     end
 end
-figure(1)
-clf
+figure(1);
+clf;
 max_caxis = max(max(abs(result_sum)))/2;
-imagesc(x,z,result_sum')
-caxis([-max_caxis, max_caxis])
-axis image
-colorbar()
+imagesc(x,z,result_sum');
+caxis([-max_caxis, max_caxis]);
+axis image;
+colorbar();
 saveas(gcf,['result_sum_',num2str(iter),'.tif'])
 
 %{
@@ -153,4 +161,4 @@ saveas(gcf,['slice_z_',num2str(iter),'.tif'])
 %}
 
 end
-exit
+% exit

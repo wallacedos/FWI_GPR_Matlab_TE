@@ -1,17 +1,31 @@
-function [ result ] = ApplyImagingCondition( f1, f2, isrc, recloc)
+function [ result ] = ApplyImagingCondition( f1, f2, isrc, recloc, nt)
 
 load(f1);
-xwavefield1 = xwavefield;
-zwavefield1 = zwavefield;
-nx = min(size(xwavefield1,2), size(zwavefield1,2));
-nz = min(size(xwavefield1,3), size(zwavefield1,3));
+
+
+nx = min(size(xwavefield,2), size(zwavefield,2));
+nz = min(size(xwavefield,3), size(zwavefield,3));
+xwavefield1 = zeros(nt, nx, nz);
+zwavefield1 = zeros(nt, nx, nz);
+xwavefield1(1:length(xwavefield(:,1,1)), :, :) = xwavefield(:,1:nx,1:nz);
+zwavefield1(1:length(zwavefield(:,1,1)), :, :) = zwavefield(:,1:nx,1:nz);
+
+clear xwavefield  zwavefield;
 
 load(f2);
-xwavefield2 = flipdim(xwavefield, 1);
-zwavefield2 = flipdim(zwavefield, 1);
+xwavefield2 = zeros(nt, nx, nz);
+zwavefield2 = zeros(nt, nx, nz);
+xwavefield2(1:length(xwavefield(:,1,1)), :, :) = xwavefield(:,1:nx,1:nz);
+zwavefield2(1:length(zwavefield(:,1,1)), :, :) = zwavefield(:,1:nx,1:nz);
+xwavefield2 = flipdim(xwavefield2, 1);
+zwavefield2 = flipdim(zwavefield2, 1);
 
-corr_xx = squeeze(sum(xwavefield1(:,1:nx,1:nz) .* xwavefield2(:,1:nx,1:nz), 1));
-corr_zz = squeeze(sum(zwavefield1(:,1:nx,1:nz) .* zwavefield2(:,1:nx,1:nz), 1));
+clear xwavefield  zwavefield;
+
+corr_xx = squeeze(sum(xwavefield1 .* xwavefield2));
+corr_zz = squeeze(sum(zwavefield1 .* zwavefield2));
+% corr_xx = squeeze(sum(xwavefield1(:,1:nx,1:nz) .* xwavefield2(:,1:nx,1:nz), 1));
+% corr_zz = squeeze(sum(zwavefield1(:,1:nx,1:nz) .* zwavefield2(:,1:nx,1:nz), 1));
 % corr_xz = squeeze(sum(xwavefield1(:,1:nx,1:nz) .* zwavefield2(:,1:nx,1:nz), 1));
 % corr_zx = squeeze(sum(zwavefield1(:,1:nx,1:nz) .* xwavefield2(:,1:nx,1:nz), 1));
 

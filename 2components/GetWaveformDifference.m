@@ -35,8 +35,10 @@ xlabel('t(ns)')
 title('RTM Forward Data (z)')
 saveas(gcf,['zgather01_',num2str(isrc),'.png'])
 
-xjoint_source = xgather00 - xgather01;
-zjoint_source = zgather00 - zgather01;
+xjoint_source = xgather00;
+zjoint_source = zgather00;
+xjoint_source(1:length(zgather01(:,1)), :) = xgather00(1:length(xgather01(:,1)), :) - xgather01;
+zjoint_source(1:length(zgather01(:,1)), :) = zgather00(1:length(zgather01(:,1)), :) - zgather01;
 % jointSource = zeros(size(gather_forward1));
 % diff_gather2 = zeros(length(gather_forward1(:,1)),1);
 % nsta = length(gather_forward1(1,:));

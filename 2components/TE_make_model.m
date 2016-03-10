@@ -2,12 +2,12 @@
 clc; clear; close all;
 
 %% Backgroud
-x = 0:4;
+x = 0:8;
 z = 0:5;
 domain = [x(end), z(end)];
 ep = 9.0*ones(length(x),length(z));
 mu = ones(size(ep));
-sig = 0.001*ones(size(ep));
+sig = 0.0*ones(size(ep));
 
 
 
@@ -43,11 +43,12 @@ sig = sig3;
 
 dt = 0.1e-9;
 
-ep(x>1.5, :) = 18;
-ep(x>3, :) = 27;
-sig(x>1.7&x<2.3, z>1.5&z<3.5) = 0.01;
+% ep(x>1.5, :) = 18;
+% ep(x>5, :) = 50;
+% sig(x>1&x<3, z>1.5&z<3.5) = 0.01;
+sig(:, z>1.5&z<3.5) = -0.01;
 
-myfilter = fspecial('gaussian',[50 50], 10);
+myfilter = fspecial('gaussian',[50 50], 20);
 sig = imfilter(sig, myfilter, 'replicate');
 
 figure();
@@ -57,7 +58,9 @@ subplot(1,3,3); imagesc(x,z,sig'); axis image; title('\sigma'); colorbar;
 saveas(gcf,'model.png')
 save('true_model.mat','ep','mu','sig','x','z','dx','dz','dt','npml')
 
-ep = imfilter(ep, myfilter, 'replicate');
+% ep = imfilter(ep, myfilter, 'replicate');
+ep = ep3;
+% sig = sig3;
 
 figure();
 subplot(1,3,1); imagesc(x,z,ep'); axis image; title('\epsilon'); colorbar;
@@ -186,7 +189,7 @@ srcx2 = srcz2 .* 0 + 0.5;
 recx1 = 0+0.5:0.1:domain(1)-0.5;
 recz1 = recx1 .* 0 + 0.5;
 
-recz2 = 0+0.5:0.1:domain(2)-0.5;
+recz2 = 0+0.1:0.1:domain(2)-0.1;
 recx2 = recz2 .* 0 + 0.5;
 
 recz3 = 0+0.5:0.1:domain(2)-0.5;
@@ -207,8 +210,8 @@ recz4 = recx4 .* 0 + 4.5;
 % recx = [recx1,recx2,recx3,recx4]';
 % recz = [recz1,recz2,recz3,recz4]';
 
-srcx = [srcx2]';
-srcz = [srcz2]';
+srcx = [srcx]';
+srcz = [srcz]';
 recx = [recx2]';
 recz = [recz2]';
 % srcx = [srcx1];

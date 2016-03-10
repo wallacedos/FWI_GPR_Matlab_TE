@@ -149,7 +149,9 @@ tic;
 disp(' ');
 disp(['Total running time = ',num2str(toc/3600),' hours']);
 
-save(['Gather02_',num2str(isrc),'.mat'],'xgather','zgather','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
-save(['Wavefield02_',num2str(isrc),'.mat'],'xwavefield','zwavefield','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
 
+save(['Gather02_',num2str(isrc),'.mat'],'xgather','zgather','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
+if outstep(1) == 1
+save(['Wavefield02_',num2str(isrc),'.mat'],'xwavefield','zwavefield','outstep','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
+end
 end

@@ -145,11 +145,13 @@ close all
 
 % run the simulation
 tic;
-[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,x,z,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt,isrc,1);
+[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,x,z,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt,isrc);
 disp(' ');
 disp(['Total running time = ',num2str(toc/3600),' hours']);
 
-save(['Gather01_',num2str(isrc),'.mat'],'xgather','zgather','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
-save(['Wavefield01_',num2str(isrc),'.mat'],'xwavefield','zwavefield','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
 
+save(['Gather01_',num2str(isrc),'.mat'],'xgather','zgather','tout','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
+if outstep(1) == 1
+save(['Wavefield01_',num2str(isrc),'.mat'],'xwavefield','zwavefield','outstep','srcx','srcz','recx','recz','dt','dx','dz','x','z','-v7.3')
+end
 end
