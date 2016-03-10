@@ -200,8 +200,7 @@ srcz = [2.5];
 % recx1 = 0:0.1:5;
 % recz1 = recx1 .* 0;
 
-% srcx1 = 0.5:0.5:domain(1)-0.5;
-srcx1 = 5;
+srcx1 = 0.5:0.5:domain(1)-0.5;
 srcz1 = srcx1 .* 0 - dz;
 
 srcz2 = 0+0.5:0.5:domain(2)-0.5;
