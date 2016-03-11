@@ -145,7 +145,7 @@ close all
 
 % run the simulation
 tic;
-[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,x,z,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt,isrc,0);
+[xwavefield,zwavefield,xgather,zgather,tout,srcx,srcz,recx,recz] = TE_model2d(ep,mu,sig,x,z,srcloc,recloc,xsrcpulse,zsrcpulse,t,npml,outstep,plotopt,isrc);
 disp(' ');
 disp(['Total running time = ',num2str(toc/3600),' hours']);
 
