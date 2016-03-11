@@ -16,9 +16,9 @@ plotopt = [1 recloc(1,3) 10 0.00005];
 plotopt_back = [plotopt(1:3), plotopt(4)^2 * length(recloc(:,1));];
 
 %%
-% if matlabpool('size')<=0
-%     matlabpool open 8;
-% end
+if matlabpool('size')<=0
+    matlabpool open 8;
+end
 
 for iter = 1:1;
 
@@ -161,4 +161,4 @@ saveas(gcf,['slice_z_',num2str(iter),'.tif'])
 %}
 
 end
-% exit
+exit
