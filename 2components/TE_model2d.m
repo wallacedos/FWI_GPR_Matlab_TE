@@ -231,10 +231,11 @@ disp('Beginning FDTD simulation...')
 %     wavefield = zeros(fix((numit-1)/outstep(1))+1, fix((length(Ez(:,1))-1)/outstep(3))+1, fix((length(Ez(1,:))-1)/outstep(2))+1);
 % end
 
- xwavefield = zeros(fix((numit-1)/outstep(2))+1, fix((length(Ex(:,1))-1)/outstep(3))+1, fix((length(Ex(1,:))-1)/outstep(3))+1);
-
- zwavefield = zeros(fix((numit-1)/outstep(2))+1, fix((length(Ez(:,1))-1)/outstep(3))+1, fix((length(Ez(1,:))-1)/outstep(3))+1);
- tout = (1:numit) * dt; 
+    xgather = zeros(it,nrec);
+    zgather = zeros(it,nrec);
+    xwavefield = zeros(fix((numit-1)/outstep(2))+1, fix((length(Ex(:,1))-1)/outstep(3))+1, fix((length(Ex(1,:))-1)/outstep(3))+1);
+    zwavefield = zeros(fix((numit-1)/outstep(2))+1, fix((length(Ez(:,1))-1)/outstep(3))+1, fix((length(Ez(1,:))-1)/outstep(3))+1);
+    tout = (1:numit) * dt; 
     
     % time stepping loop
     for it=1:numit
